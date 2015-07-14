@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="title">Aplicación de Broca v1.0</string>
+    <string name="app_name">BrocaTraka</string>
+    <string name="gpsPosition">GPS</string>
+    <string name="networkPosition">Red</string>
+    <string name="newTree">Árbol Nuevo</string>
+    <string name="saveTree">Guardar Árbol</string>
+    <string name="cancelTree">Cancelar Árbol</string>
+    <string name="saveButton">Guardar</string>
+    <string name="emailButton">E-Mail Datos</string>
+    <string name="clearButton">Eliminar Todos</string>
+    <string name="newFileButton">Archivo Nuevo</string>
+    <string name="zero">0.0 W 0.0 N 0m 0m</string>
+    <string name="noStatus">Ningún estado</string>
+    <string name="numInfectedPrompt">Granos Infectados</string>
+    <string name="totalNumPrompt">Total Granos</string>
+    <string name="lotNumPrompt">Numero de Lote</string>
+    <string name="bagNumPrompt">Numero de Árbol</string>
+    <string name="descriptionPrompt">Descripción</string>
+    <string name="dateHeading">Fecha</string>
+    <string name="userNameHeading">Nombre del Usario</string>
+    <string name="percentageInfectedHeading">Porcentaje Infectados</string>
+    <string name="branchPositionHeading">Posición de Rama</string>
+    <string name="brocaStateHeading">Estado de Broca</string>
+    <string name="noCellularProvider">No hay red de celular</string>
+    <string name="exceptionConvertingTree">Excepción  para convertir el árbol string</string>
+    <string name="noLocationToSave">Ningún lugar para guardar</string>
+    <string name="numInfectedGreaterThanTotal">El número de infectados no puede ser mayor que el total</string>
+    <string name="numInfectedTotalRequired">Se requiere el total y el número de infectados</string>
+    <string name="saved">Guardado</string>
+    <string name="saveFailed">falló Guardar</string>
+    <string name="noDataToSend">No hay datos para enviar</string>
+    <string name="emailSubject">Datos de Árboles de la Hacienda Venecia</string>
+    <string name="couldNotAddAttachment">No se pudo agregar adjuntos</string>
+    <string name="sendingEmail">Envío email</string>
+    <string name="noEmailClients">No hay clientes de email</string>
+    <string name="yes">Si</string>
+    <string name="no">No</string>
+    <string name="confirmClearing">Confirmacion para Eliminar Todos</string>
+    <string name="confirmTrackingMode">¿Quieres entrar en el modo de seguimiento solamente?</string>
+    <string name="trees">Arboles</string>
+    <string name="exceptionWritingToFile">Excepción de escritura para el archivo</string>
+    <string name="exceptionReadingFromFile">Lectura de Excepción de archivo</string>
+    <string name="userNamePromptTitle">El Nombre del Usuario</string>
+    <string name="userNamePrompt">Introduzca el nombre del usuario"</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelar</string>
+    
+    <string-array name="treeSpinnerEmpty">
+        <item>Vacío</item>
+    </string-array>
+
+    <string-array name="branchSpinner">
+        <item>Rama Superior</item>
+        <item>Rama Mediano</item>
+        <item>Rama Inferior</item>
+    </string-array>
+
+    <string-array name="stateSpinner">
+        <item>Estado Desconocido</item>
+        <item>Ausentes</item>
+        <item>Brocas Vivas 1</item>
+        <item>Brocas Vivas 2 CF</item>
+        <item>Brocas Vivas 2 SF</item>
+        <item>Brocas Muertas Q</item>
+        <item>Brocas Muertas H</item>
+    </string-array>
+
+</resources>

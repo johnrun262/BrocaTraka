@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/title"
+        android:textSize="20dip"
+        android:textStyle="bold" />
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/inputTable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:stretchColumns="1">
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/lotNumPrompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/lotNumPrompt"
+                android:textSize="20dip" />
+
+            <EditText
+                android:id="@+id/lotNum"
+                style="@style/edit_text"
+                android:layout_alignTop="@id/lotNumPrompt"
+                android:layout_toRightOf="@id/lotNumPrompt" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/bagNumPrompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lotNum"
+                android:text="@string/bagNumPrompt"
+                android:textSize="20dip" />
+
+            <EditText
+                android:id="@+id/bagNum"
+                style="@style/edit_text"
+                android:layout_alignTop="@id/bagNumPrompt"
+                android:layout_toRightOf="@id/bagNumPrompt" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/totalNumPrompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/bagNum"
+                android:text="@string/totalNumPrompt"
+                android:textSize="20dip" />
+
+            <EditText
+                android:id="@+id/totalNum"
+                style="@style/edit_text"
+                android:layout_alignTop="@id/totalNumPrompt"
+                android:layout_toRightOf="@id/totalNumPrompt" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/numInfectedPrompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/totalNum"
+                android:text="@string/numInfectedPrompt"
+                android:textSize="20dip" />
+
+            <EditText
+                android:id="@+id/numInfected"
+                style="@style/edit_text"
+                android:layout_alignTop="@id/numInfectedPrompt"
+                android:layout_toRightOf="@id/numInfectedPrompt" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/descriptionPrompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/numInfectedPrompt"
+                android:text="@string/descriptionPrompt"
+                android:textSize="20dip" />
+
+            <EditText
+                android:id="@+id/description"
+                style="@style/edit_text"
+                android:layout_alignTop="@id/descriptionPrompt"
+                android:layout_toRightOf="@id/descriptionPrompt" />
+        </TableRow>
+
+    </TableLayout>
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/spinnerTable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/inputTable"
+        android:stretchColumns="*">
+
+        <TableRow>
+
+            <Spinner
+                android:id="@+id/branchSpinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:minHeight="50dip"
+                android:textSize="30dip" />
+
+            <Spinner
+                android:id="@+id/stateSpinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:minHeight="50dip"
+                android:textSize="30dip" />
+
+        </TableRow>
+
+    </TableLayout>
+
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/buttonTable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/spinnerTable"
+        android:stretchColumns="*">
+
+        <TableRow>
+
+            <Button
+                android:id="@+id/newTree"
+                style="@style/button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/branchSpinner"
+                android:text="@string/newTree" />
+
+            <Button
+                android:id="@+id/saveTree"
+                style="@style/button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/newTree"
+                android:layout_toRightOf="@id/newTree"
+                android:text="@string/saveTree" />
+        </TableRow>
+
+        <TableRow>
+
+            <Button
+                android:id="@+id/cancelTree"
+                style="@style/button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/newTree"
+                android:visibility="gone"
+                android:text="@string/cancelTree" />
+        </TableRow>
+    </TableLayout>
+
+    <Spinner
+        android:id="@+id/treeSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonTable"
+        android:minHeight="50dip"
+        android:textSize="30dip" />
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/buttonTable2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/treeSpinner"
+        android:stretchColumns="*">
+
+        <TableRow>
+
+            <Button
+                android:id="@+id/gpsNewFile"
+                style="@style/button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:text="@string/newFileButton" />
+
+            <Button
+                android:id="@+id/gpsClear"
+                style="@style/button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/clearButton" />
+
+            <Button
+                android:id="@+id/gpsEmail"
+                style="@style/button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/gpsClear"
+                android:layout_toRightOf="@id/gpsClear"
+                android:text="@string/emailButton" />
+
+        </TableRow>
+
+    </TableLayout>
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/locationTable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonTable2"
+        android:stretchColumns="*">
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/gpsPosition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/gpsPosition" />
+
+            <TextView
+                android:id="@+id/gpsLongLat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/zero" />
+
+            <TextView
+                android:id="@+id/gpsStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/networkPosition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/networkPosition" />
+
+            <TextView
+                android:id="@+id/networkLongLat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/zero" />
+
+            <TextView
+                android:id="@+id/networkStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+
+        </TableRow>
+    </TableLayout>
+
+</RelativeLayout>
