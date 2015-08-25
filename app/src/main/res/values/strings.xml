@@ -32,7 +32,7 @@
     <string name="saved">Guardado</string>
     <string name="saveFailed">falló Guardar</string>
     <string name="noDataToSend">No hay datos para enviar</string>
-    <string name="emailSubject">Datos de Árboles de la Hacienda Venecia</string>
+    <string name="emailSubject">Datos de Árboles</string>
     <string name="couldNotAddAttachment">No se pudo agregar adjuntos</string>
     <string name="sendingEmail">Envío email</string>
     <string name="noEmailClients">No hay clientes de email</string>
