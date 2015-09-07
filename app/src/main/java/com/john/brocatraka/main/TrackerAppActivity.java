@@ -29,15 +29,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
-import android.text.InputType;
 import android.view.ContextThemeWrapper;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,30 +47,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-public class BrocaTrakaAppActivity extends Activity {
+public class TrackerAppActivity extends Activity {
 
     private LocationManager locationManager; // used to request location updated and get gps status
     private TextView gpsStatusView;          // used to update UI with status
 
-    private EditText numInfectedView;        // used to get/set Number infected on UI
-    private EditText totalNumView;           // used to get/set Total Number on UI
-    private EditText lotNumView;             // used to get/set Lot Number on UI
-    private EditText bagNumView;             // used to get/set Bag Number on UI
-    private EditText descriptionView;        // used to get/set Description on UI
-
-    private Spinner treeSpinner;             // UI object presenting tree spinner
-    private Spinner branchSpinner;           // UI object presenting branch location spinner
-    private Spinner stateSpinner;            // UI object presenting state location spinner
-
+    private static TrackedObjectsConnector trackedObjectsConnector;
 
     private int gpsMinSat = 0;               // the minimum number of satellites that must be used for fix
     private float gpsMinSNR = 0;             // the minimum signal to noise ratio before we can use a satellite
@@ -106,24 +90,15 @@ public class BrocaTrakaAppActivity extends Activity {
     View saveButton;
 
     private MyLocationListener gpslocationListener; // listener for GPS location updates - added/removed in Start/Stop button
-    private ArrayList<TreeObject> treeList; // List of all saved vertices
 
     // file which data is written to
-    final private static String FILE_NAME = "brokaDataFile";
+    final private static String FILE_NAME = "trackerDataFile";
     final private static String FILE_TYPE = ".txt";
     final private static String USER_NAME = "userNameFile";
     final private static String DIR_NAME = "gpsData";
 
-    // the last lot and bag to populate UI automagically
-    private int lastLotNum = 0;
-    private int lastBagNum = 0;
-
-
     // name of the user
     private String userName = "";
-
-    // true if total and number infected are not required because just collecting path
-    Boolean trackingMode = false;
 
     /**
      * Called when the activity is first created.
@@ -142,9 +117,6 @@ public class BrocaTrakaAppActivity extends Activity {
         // get the location manager object to use when adding location listeners and getting gps status
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
-        // create a list to save vertices found by averaging
-        treeList = new ArrayList<TreeObject>();
-
         // LISTENERS
 
         // add a listener for gps status updates
@@ -156,49 +128,15 @@ public class BrocaTrakaAppActivity extends Activity {
             MyLocationListener networkLocationListener = new MyLocationListener((TextView) findViewById(R.id.networkLongLat), ProviderType.CELL);
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, networkLocationListener);
         } catch (Exception ex) {
-            Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.noCellularProvider), Toast.LENGTH_SHORT).show();
+            Toast.makeText(TrackerAppActivity.this, getString(R.string.noCellularProvider), Toast.LENGTH_SHORT).show();
         }
-
 
         // add a listener for location updates from the gps
         gpslocationListener = new MyLocationListener((TextView) findViewById(R.id.gpsLongLat), ProviderType.GPS);
         // listener for location updates from gps added in Start Button listener and removed in Stop Button listener
         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpslocationListener);
 
-        // SPINNERS
-
-        treeSpinner = (Spinner) findViewById(R.id.treeSpinner);
-        ArrayAdapter<CharSequence> treeSpinnerAdapter =
-                ArrayAdapter.createFromResource(this, R.array.treeSpinnerEmpty, android.R.layout.simple_spinner_item);
-        treeSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
-        treeSpinner.setAdapter(treeSpinnerAdapter);
-        treeSpinner.setOnItemSelectedListener(new treeSpinnerListener());
-
-        branchSpinner = (Spinner) findViewById(R.id.branchSpinner);
-        ArrayAdapter<CharSequence> branchSpinnerAdapter =
-                ArrayAdapter.createFromResource(this, R.array.branchSpinner, android.R.layout.simple_spinner_item);
-        branchSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
-        branchSpinner.setAdapter(branchSpinnerAdapter);
-        branchSpinner.setOnItemSelectedListener(new branchSpinnerListener());
-
-        stateSpinner = (Spinner) findViewById(R.id.stateSpinner);
-        ArrayAdapter<CharSequence> stateSpinnerAdapter =
-                ArrayAdapter.createFromResource(this, R.array.stateSpinner, android.R.layout.simple_spinner_item);
-        stateSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
-        stateSpinner.setAdapter(stateSpinnerAdapter);
-        stateSpinner.setOnItemSelectedListener(new stateSpinnerListener());
-
-        // populate spinner with data in file if exists
-        readFromFile();
-        populateTreeSpinner();
-
-        // INPUT FIELDS
-
-        numInfectedView = (EditText) findViewById(R.id.numInfected);
-        totalNumView = (EditText) findViewById(R.id.totalNum);
-        lotNumView = (EditText) findViewById(R.id.lotNum);
-        bagNumView = (EditText) findViewById(R.id.bagNum);
-        descriptionView = (EditText) findViewById(R.id.description);
+        // Setup Generic UI elements
 
         // BUTTONS
 
@@ -226,15 +164,26 @@ public class BrocaTrakaAppActivity extends Activity {
         View clearButton = findViewById(R.id.gpsClear);
         clearButton.setOnClickListener(new MyOnClickListener(ButtonType.CLEAR));
 
+        // Get a TrackedObjectsConnector
+        trackedObjectsConnector = new TrackedObjectsConnector(this);
+        trackedObjectsConnector.onCreate();
+
         // stop input until new tree pushed
-        stopInput();
+        trackedObjectsConnector.stopInput();
+
+        // grey out save button
+        saveButton.setEnabled(false);
+
+        // set the new button function to New
+        currNewButtonFunction = NewButtonFunction.NEW;
+        ((Button) newButton).setText(getString(R.string.newTree));
 
         // get the name of the user
         promptForUserName();
 
         //  turn on tracking only mode if confirmed
 
-        /* TODO alertDialogBuilder = new AlertDialog.Builder(BrocaTrakaAppActivity.this);
+        /* TODO alertDialogBuilder = new AlertDialog.Builder(TrackerAppActivity.this);
         alertDialogBuilder.setTitle(getString(R.string.confirmTrackingMode));
         alertDialogBuilder.setCancelable(true);
         alertDialogBuilder.setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
@@ -278,229 +227,6 @@ public class BrocaTrakaAppActivity extends Activity {
 
     }
 
-    private void stopInput() {
-        numInfectedView.getText().clear();
-        numInfectedView.setInputType(InputType.TYPE_NULL);
-        numInfectedView.setEnabled(false);
-        totalNumView.getText().clear();
-        totalNumView.setInputType(InputType.TYPE_NULL);
-        totalNumView.setEnabled(false);
-        lotNumView.getText().clear();
-        lotNumView.setInputType(InputType.TYPE_NULL);
-        lotNumView.setEnabled(false);
-        bagNumView.getText().clear();
-        bagNumView.setInputType(InputType.TYPE_NULL);
-        bagNumView.setEnabled(false);
-        descriptionView.getText().clear();
-        descriptionView.setInputType(InputType.TYPE_NULL);
-        descriptionView.setEnabled(false);
-        branchSpinner.setEnabled(false);
-        branchSpinner.setSelection(1);
-        stateSpinner.setEnabled(false);
-        stateSpinner.setSelection(0);
-
-        // grey out save button
-        saveButton.setEnabled(false);
-
-        // set the new button function to New
-        currNewButtonFunction = NewButtonFunction.NEW;
-        ((Button) newButton).setText(getString(R.string.newTree));
-    }
-
-    private void allowInput() {
-        numInfectedView.setInputType(InputType.TYPE_CLASS_NUMBER);
-        numInfectedView.setEnabled(true);
-        numInfectedView.getText().clear();
-        totalNumView.setInputType(InputType.TYPE_CLASS_NUMBER);
-        totalNumView.setEnabled(true);
-        totalNumView.getText().clear();
-        lotNumView.setInputType(InputType.TYPE_CLASS_NUMBER);
-        lotNumView.setEnabled(true);
-        lotNumView.getText().clear();
-        bagNumView.setInputType(InputType.TYPE_CLASS_NUMBER);
-        bagNumView.setEnabled(true);
-        bagNumView.getText().clear();
-        descriptionView.setInputType(InputType.TYPE_CLASS_TEXT);
-        descriptionView.setEnabled(true);
-        descriptionView.getText().clear();
-        branchSpinner.setEnabled(true);
-        branchSpinner.setSelection(1);
-        stateSpinner.setEnabled(true);
-        stateSpinner.setSelection(0);
-
-        // ungrey out save button
-        saveButton.setEnabled(true);
-
-        // set the new button function to Cancel
-        currNewButtonFunction = NewButtonFunction.CANCEL;
-        ((Button) newButton).setText(getString(R.string.cancelTree));
-
-    }
-
-    // class to hold all the attributes of the vertex found be averaging locations
-    private class TreeObject {
-        private String desc;         // text description entered on UI
-        private String branchPos;    // relative position of the branch on the tree
-        private String brocaState;   // the state of the broca
-        private int numInfected;     // the number of infected beans entered by user
-        private int totalNum;        // the total number of beans entered by the user
-        private int percentInfected; // the percentage of bean infected
-        private int lotNum;          // lot number
-        private int bagNum;          // bag number
-        private double longitude;    // location
-        private double latitude;     // location
-        private double altitude;     // location
-        private float accuracy;      // location
-        private int minSat;          // the minimum number of satellites required while averaging
-        private float minSNR;        // the minimum SNR required while averaging
-        private float maxAccuracy;   // the maximum accuracy required while averaging
-        private int numFixes;        // the total number of fixes used to get this vertex
-        private String date;         // the date the data was captured
-        private String userName;     // the name of the user that captured the data
-
-        // constructor to set attributes for the vertex
-        public TreeObject(String desc, String branchPos, String brocaState, int numInfected, int totalNum, int lotNum, int bagNum,
-                          Location location, int minSat, float minSNR, float maxAccuracy,
-                          int numFixes, String userName) throws Exception {
-
-            this.desc = desc;
-            this.branchPos = branchPos;
-            this.brocaState = brocaState;
-            this.numInfected = numInfected;
-            this.totalNum = totalNum;
-
-            if (this.totalNum != 0) {
-                this.percentInfected = 100 * this.numInfected / this.totalNum;
-            } else {
-                this.percentInfected = 0;
-            }
-
-            this.lotNum = lotNum;
-            this.bagNum = bagNum;
-
-            this.longitude = location.getLongitude();
-            this.latitude = location.getLatitude();
-            this.altitude = location.getAltitude();
-            this.accuracy = location.getAccuracy();
-            this.minSat = minSat;
-            this.minSNR = minSNR;
-            this.maxAccuracy = maxAccuracy;
-            this.numFixes = numFixes;
-
-            Calendar c = Calendar.getInstance();
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            this.date = df.format(c.getTime());
-
-            this.userName = userName;
-        }
-
-        // tree object from CSV file values
-        public TreeObject(String[] rowData) throws Exception {
-            int rowPos = 0;
-            this.desc = rowData[rowPos++];
-            this.branchPos = rowData[rowPos++];
-            this.brocaState = rowData[rowPos++];
-            this.longitude = Double.valueOf(rowData[rowPos++]);
-            this.latitude = Double.valueOf(rowData[rowPos++]);
-            this.altitude = Double.valueOf(rowData[rowPos++]);
-            this.accuracy = Float.valueOf(rowData[rowPos++]);
-            this.numInfected = Integer.valueOf(rowData[rowPos++]);
-            this.totalNum = Integer.valueOf(rowData[rowPos++]);
-            this.percentInfected = Integer.valueOf(rowData[rowPos++]);
-            this.lotNum = Integer.valueOf(rowData[rowPos++]);
-            this.bagNum = Integer.valueOf(rowData[rowPos++]);
-            this.numFixes = Integer.valueOf(rowData[rowPos++]);
-            this.date = rowData[rowPos++];
-            this.userName = rowData[rowPos++];
-
-            lastLotNum = this.lotNum;
-            lastBagNum = this.bagNum;
-        }
-
-        // CSV String format for output
-        public String toString() {
-            try {
-                String outString = this.desc + ",";
-
-                outString = outString + this.branchPos + ",";
-
-                outString = outString + this.brocaState + ",";
-
-                outString = outString +
-                        String.valueOf(this.longitude) + "," +
-                        String.valueOf(this.latitude) + "," +
-                        String.valueOf(this.altitude) + "," +
-                        String.valueOf(this.accuracy) + ",";
-
-
-                outString = outString +
-                        String.valueOf(this.numInfected) + "," +
-                        String.valueOf(this.totalNum) + ",";
-
-                outString = outString +
-                        String.valueOf(this.percentInfected) + ",";
-
-                outString = outString +
-                        String.valueOf(this.lotNum) + "," +
-                        String.valueOf(this.bagNum) + ",";
-
-                outString = outString +
-                        String.valueOf(this.numFixes) + ",";
-
-                outString = outString + this.date + ",";
-
-                outString = outString + this.userName;
-
-                return (outString);
-
-            } catch (Exception e) {
-                Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.exceptionConvertingTree), Toast.LENGTH_LONG).show();
-                return "";
-            }
-        }
-    }
-
-    // CSV Heading String
-    public String getHeading() {
-
-        String outString = getString(R.string.descriptionPrompt) + ",";
-
-        outString = outString + getString(R.string.branchPositionHeading) + ",";
-
-        outString = outString + getString(R.string.brocaStateHeading) + ",";
-
-        outString = outString +
-                "Longitude" + "," +
-                "Latitude" + "," +
-                "Altitude" + "," +
-                "Accuracy" + ",";
-
-        outString = outString +
-                getString(R.string.numInfectedPrompt) + "," +
-                getString(R.string.totalNumPrompt) + ",";
-
-
-        outString = outString +
-                getString(R.string.percentageInfectedHeading) + ",";
-
-        outString = outString +
-                getString(R.string.lotNumPrompt) + ",";
-
-        outString = outString +
-                getString(R.string.bagNumPrompt) + ",";
-
-        outString = outString +
-                "Number of Fixes" + ",";
-
-        outString = outString +
-                getString(R.string.dateHeading) + ",";
-
-        outString = outString +
-                getString(R.string.userNameHeading);
-
-        return (outString);
-    }
-
     // Class to handle button clicks
     private class MyOnClickListener implements View.OnClickListener {
         private ButtonType buttonType;        // Constructor sets the button that the instance associated with
@@ -532,15 +258,15 @@ public class BrocaTrakaAppActivity extends Activity {
                     // add a listener for location updates from the gps
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpslocationListener);
 
+                    // ungrey out save button
+                    saveButton.setEnabled(true);
+
+                    // set the new button function to Cancel
+                    currNewButtonFunction = NewButtonFunction.CANCEL;
+                    ((Button) newButton).setText(getString(R.string.cancelTree));
+
                     // Clear the UI values and allow input
-                    allowInput();
-
-                    // use the lot and bag number from the last tree if there is one
-                    totalNumView.requestFocus();
-
-                    bagNumView.setText(Integer.toString(lastBagNum + 1));
-                    lotNumView.setText(Integer.toString(lastLotNum));
-
+                    trackedObjectsConnector.newButton();
 
                     break;
 
@@ -549,73 +275,15 @@ public class BrocaTrakaAppActivity extends Activity {
                     try {
 
                         if (gpsAvgLocation == null) {
-                            Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.noLocationToSave), Toast.LENGTH_LONG).show();
+                            Toast.makeText(TrackerAppActivity.this, getString(R.string.noLocationToSave), Toast.LENGTH_LONG).show();
                             return;
                         }
 
-                        int numInfected = 0;
-                        int totalNum = 0;
-
-                        try {
-                            totalNum = Integer.valueOf(totalNumView.getText().toString());
-                            numInfected = Integer.valueOf(numInfectedView.getText().toString());
-                            //  turn off tracking only mode because valid values entered
-                            trackingMode = false;
-
-                        } catch (Exception e) {
-
-                            if (!trackingMode) {
-                                Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.numInfectedTotalRequired), Toast.LENGTH_LONG).show();
-                                return;
-                            }
-
-                        }
-
-                        if (numInfected > totalNum) {
-                            Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.numInfectedGreaterThanTotal), Toast.LENGTH_LONG).show();
-                            break;
-                        }
-
-                        int lotNum;
-                        int bagNum;
-
-                        try {
-                            lotNum = Integer.valueOf(lotNumView.getText().toString());
-                            bagNum = Integer.valueOf(bagNumView.getText().toString());
-                        } catch (Exception e) {
-                            lotNum = 0;
-                            bagNum = 0;
-                        }
-
-                        // to populate next tree
-                        lastLotNum = lotNum;
-                        lastBagNum = bagNum;
-
-                        // get the branch location from the spinner
-                        String branchPos = (String) branchSpinner.getSelectedItem();
-
-                        // get the broca state from the spinner
-                        String brocaState = (String) stateSpinner.getSelectedItem();
-
-                        // get the description and remove commas
-                        String desc = descriptionView.getText().toString();
-                        desc = desc.replace(',', '.');
-
-                        // create a tree object to save the averaged location
-
-                        TreeObject tree = new TreeObject(desc.toString(),
-                                branchPos, brocaState, numInfected, totalNum, lotNum, bagNum,
-                                /*gpsAvgLocation TODO */getAvgOfBestLocations(), gpsMinSat,
+                        trackedObjectsConnector.saveButton(getAvgOfBestLocations(), gpsMinSat,
                                 gpsMinSNR, gpsMaxAccuracy, gpsNumFixes, userName);
 
-                        // add to list of tree
-                        treeList.add(tree);
-                        populateTreeSpinner();
-                        writeToFile(tree.toString(), true);
-
-                        Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.saved), Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
-                        Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.saveFailed), Toast.LENGTH_LONG).show();
+                        Toast.makeText(TrackerAppActivity.this, getString(R.string.saveFailed), Toast.LENGTH_LONG).show();
                     }
 
                     // no break so fall through into cancel
@@ -631,7 +299,14 @@ public class BrocaTrakaAppActivity extends Activity {
                     gpsAvgLocation = null;
 
                     // stop additional input until new tree pushed
-                    stopInput();
+                    trackedObjectsConnector.stopInput();
+
+                    // grey out save button
+                    saveButton.setEnabled(false);
+
+                    // set the new button function to New
+                    currNewButtonFunction = NewButtonFunction.NEW;
+                    ((Button) newButton).setText(getString(R.string.newTree));
 
                     break;
 
@@ -641,8 +316,8 @@ public class BrocaTrakaAppActivity extends Activity {
                 case EMAIL:
 
                     // any data to send?
-                    if (treeList.size() == 0) {
-                        Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.noDataToSend), Toast.LENGTH_LONG).show();
+                    if (trackedObjectsConnector.getNumObjects() == 0) {
+                        Toast.makeText(TrackerAppActivity.this, getString(R.string.noDataToSend), Toast.LENGTH_LONG).show();
                         break;
                     }
 
@@ -650,16 +325,6 @@ public class BrocaTrakaAppActivity extends Activity {
                     Intent intent = new Intent(Intent.ACTION_SEND);
                     intent.setType("text/plain");
                     intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.emailSubject));
-
-                    // Add CSV heading
-                    String mailString = getHeading();
-
-                    // loop to add all CSV vertices to content
-                    mailString = mailString + "\n";
-                    for (TreeObject t : treeList) {
-                        mailString = mailString + t.toString() + "\n";
-                    }
-                    intent.putExtra(Intent.EXTRA_TEXT, mailString);
 
                     // add attachment with data
                     try {
@@ -670,17 +335,19 @@ public class BrocaTrakaAppActivity extends Activity {
                         copyFile(file, toFile);
 
                         Uri uri = Uri.fromFile(toFile);
-                        Toast.makeText(BrocaTrakaAppActivity.this, "Attachment URI: " + uri.toString(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(TrackerAppActivity.this, "Attachment URI: " + uri.toString(), Toast.LENGTH_LONG).show();
+                        intent.putExtra(Intent.EXTRA_TEXT, uri);
                         intent.putExtra(Intent.EXTRA_STREAM, uri);
+
                     } catch (Exception e) {
-                        Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.couldNotAddAttachment), Toast.LENGTH_LONG).show();
+                        Toast.makeText(TrackerAppActivity.this, getString(R.string.couldNotAddAttachment), Toast.LENGTH_LONG).show();
                     }
 
                     // try to send
                     try {
                         startActivity(Intent.createChooser(intent, getString(R.string.sendingEmail)));
                     } catch (android.content.ActivityNotFoundException ex) {
-                        Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.noEmailClients), Toast.LENGTH_LONG).show();
+                        Toast.makeText(TrackerAppActivity.this, getString(R.string.noEmailClients), Toast.LENGTH_LONG).show();
                     }
 
                     break;
@@ -688,16 +355,14 @@ public class BrocaTrakaAppActivity extends Activity {
                 case CLEAR:
 
                     // show a confirmation dialog to confirm the user really want to clear list
-                    alertDialogBuilder = new AlertDialog.Builder(BrocaTrakaAppActivity.this);
+                    alertDialogBuilder = new AlertDialog.Builder(TrackerAppActivity.this);
                     alertDialogBuilder.setTitle(getString(R.string.confirmClearing) + " " +
-                            String.valueOf(treeList.size()) + " " + getString(R.string.trees) + "?");
+                            String.valueOf(trackedObjectsConnector.getNumObjects()) + " " + getString(R.string.trackedObject) + "?");
                     alertDialogBuilder.setCancelable(true);
                     alertDialogBuilder.setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             // finally clear the list if the user clicks yes
-                            treeList = new ArrayList<TreeObject>();
-                            populateTreeSpinner();
-                            writeToFile(getHeading(), false);
+                            trackedObjectsConnector.clearButton();
                         }
                     });
                     alertDialogBuilder.setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
@@ -711,74 +376,6 @@ public class BrocaTrakaAppActivity extends Activity {
                     break;
 
             }
-        }
-    }
-
-    // method to re-populate tree spinner when tree list changes
-    private void populateTreeSpinner() {
-
-        ArrayList<String> treeStrings = new ArrayList<String>();
-
-        if (treeList.size() == 0) {
-            treeStrings = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.treeSpinnerEmpty)));
-        } else {
-            int i = treeList.size();
-            while (i > 0) {
-                i--;
-                TreeObject tree = treeList.get(i);
-                String desc = tree.desc;
-                if (desc.length() > 30) {
-                    desc = desc.substring(0, 30);
-                }
-
-                String s = String.valueOf(tree.lotNum) + "/" + String.valueOf(tree.bagNum) + " " + desc +
-                        " " + String.valueOf(tree.percentInfected) + "%(" +
-                        String.valueOf(tree.numInfected) + "/" + String.valueOf(tree.totalNum) +
-                        ")";
-
-                treeStrings.add(s);
-            }
-        }
-
-        ArrayAdapter<String> treeSpinnerAdapter =
-                new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, treeStrings);
-        treeSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
-        treeSpinner.setAdapter(treeSpinnerAdapter);
-    }
-
-    // Methods in this class are called when the user interacts with the tree spinner on the UI
-    private class treeSpinnerListener implements OnItemSelectedListener {
-        // the user selected one of the items on one of the spinners
-        public void onItemSelected(AdapterView<?> parent, View view, int pos,
-                                   long arg3) {
-        }
-
-        // nothing selected do nothing
-        public void onNothingSelected(AdapterView<?> arg0) {
-        }
-    }
-
-    // Methods in this class are called when the user interacts with the branch spinner on the UI
-    private class branchSpinnerListener implements OnItemSelectedListener {
-        // the user selected one of the items on one of the spinners
-        public void onItemSelected(AdapterView<?> parent, View view, int pos,
-                                   long arg3) {
-        }
-
-        // nothing selected do nothing
-        public void onNothingSelected(AdapterView<?> arg0) {
-        }
-    }
-
-    // Methods in this class are called when the user interacts with the broca state spinner on the UI
-    private class stateSpinnerListener implements OnItemSelectedListener {
-        // the user selected one of the items on one of the spinners
-        public void onItemSelected(AdapterView<?> parent, View view, int pos,
-                                   long arg3) {
-        }
-
-        // nothing selected do nothing
-        public void onNothingSelected(AdapterView<?> arg0) {
         }
     }
 
@@ -1001,7 +598,7 @@ public class BrocaTrakaAppActivity extends Activity {
     }
 
     // append the data collected to a file
-    private boolean writeToFile(String data, Boolean append) {
+    public boolean writeToFile(String data, Boolean append, String heading) {
 
         try {
 
@@ -1013,7 +610,7 @@ public class BrocaTrakaAppActivity extends Activity {
 
             // if we are appending to a file and it doesn't exist then write the heading first
             if (append && !file.exists()) {
-                data = getHeading() + "\n" + data;
+                data = heading + "\n" + data;
             } else {
                 if (!append) {
                     // rename existing file and keep 2 weeks worth of data
@@ -1053,41 +650,13 @@ public class BrocaTrakaAppActivity extends Activity {
             msh.addFile(file.getAbsolutePath());
 
         } catch (Exception e) {
-            Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.exceptionWritingToFile), Toast.LENGTH_LONG).show();
+            Toast.makeText(TrackerAppActivity.this, getString(R.string.exceptionWritingToFile), Toast.LENGTH_LONG).show();
             return false;
         }
 
         return true;
 
     }
-
-    // read file and populate spinner
-    private void readFromFile() {
-
-        try {
-
-            File file = new File(getWorkingFileName());
-
-            BufferedReader in = new BufferedReader(new FileReader(file));
-
-            String inputString;
-
-            while ((inputString = in.readLine()) != null) {
-                String[] rowData = inputString.split(",");
-                try {
-                    TreeObject tree = new TreeObject(rowData);
-                    treeList.add(tree);
-                } catch (Exception e) {
-
-                }
-            }
-
-        } catch (Exception e) {
-            Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.exceptionReadingFromFile), Toast.LENGTH_LONG).show();
-        }
-
-    }
-
 
     private void writeUserName(String userName) {
 
@@ -1103,7 +672,7 @@ public class BrocaTrakaAppActivity extends Activity {
             out.close();
 
         } catch (Exception e) {
-            Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.exceptionWritingToFile), Toast.LENGTH_LONG).show();
+            Toast.makeText(TrackerAppActivity.this, getString(R.string.exceptionWritingToFile), Toast.LENGTH_LONG).show();
         }
 
     }
@@ -1123,7 +692,7 @@ public class BrocaTrakaAppActivity extends Activity {
             return (inputString);
 
         } catch (Exception e) {
-            Toast.makeText(BrocaTrakaAppActivity.this, getString(R.string.exceptionReadingFromFile), Toast.LENGTH_LONG).show();
+            Toast.makeText(TrackerAppActivity.this, getString(R.string.exceptionReadingFromFile), Toast.LENGTH_LONG).show();
         }
 
         return "";
@@ -1162,6 +731,29 @@ public class BrocaTrakaAppActivity extends Activity {
 
         public void onScanCompleted(String path, Uri uri) {
         }
+    }
+
+    public ArrayList<String> readFile() {
+
+        ArrayList<String> rows = new ArrayList<String>();
+
+        try {
+
+            String inputString;
+
+            File file = new File(getWorkingFileName());
+            BufferedReader in = new BufferedReader(new FileReader(file));
+
+            while ((inputString = in.readLine()) != null) {
+                rows.add(inputString);
+            }
+
+        } catch (Exception e) {
+            Toast.makeText(this, getString(R.string.exceptionReadingFromFile), Toast.LENGTH_LONG).show();
+        }
+
+        return rows;
+
     }
 
     public void copyFile(File src, File dst) throws IOException {
