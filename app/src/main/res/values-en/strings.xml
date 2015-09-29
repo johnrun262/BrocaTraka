@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="title">Broca Application v1.0</string>
+    <string name="app_name">BrocaTraka</string>
+    <string name="gpsPosition">GPS</string>
+    <string name="networkPosition">Network</string>
+    <string name="newTree">New Tree</string>
+    <string name="saveTree">Save Tree</string>
+    <string name="cancelTree">Cancel Tree</string>
+    <string name="saveButton">Sa</string>
+    <string name="emailButton">E-Mail Data</string>
+    <string name="clearButton">Delete All</string>
+    <string name="newFileButton">New File</string>
+    <string name="zero">0.0 W 0.0 N 0m 0m</string>
+    <string name="noStatus">No State</string>
+    <string name="numInfectedPrompt">Infected Beans</string>
+    <string name="totalNumPrompt">Total Beans</string>
+    <string name="lotNumPrompt">Lot Number</string>
+    <string name="bagNumPrompt">Tree Number</string>
+    <string name="descriptionPrompt">Description</string>
+    <string name="dateHeading">Date</string>
+    <string name="userNameHeading">User Name</string>
+    <string name="percentageInfectedHeading">Percent Infected</string>
+    <string name="branchPositionHeading">Branch Position</string>
+    <string name="brocaStateHeading">Broca State</string>
+    <string name="noCellularProvider">No Cell Networkr</string>
+    <string name="exceptionConvertingTree">Exception Converting Tree to String</string>
+    <string name="noLocationToSave">No Location to save</string>
+    <string name="numInfectedGreaterThanTotal">The number infected cannot be greater than the total</string>
+    <string name="numInfectedTotalRequired">The total and number infected are required</string>
+    <string name="saved">Saved</string>
+    <string name="saveFailed">Failed to Saver</string>
+    <string name="noDataToSend">No Data to Send</string>
+    <string name="emailSubject">Tree Data</string>
+    <string name="couldNotAddAttachment">Could Not add Attachment</string>
+    <string name="sendingEmail">Email Sent</string>
+    <string name="noEmailClients">No E-Mail Clients</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="confirmClearing">Confirm Deleting All</string>
+    <string name="confirmTrackingMode">Do you want to enter tracking mode</string>
+    <string name="trackedObject">Trees</string>
+    <string name="exceptionWritingToFile">Exception Writing File</string>
+    <string name="exceptionReadingFromFile">Exception Reading File</string>
+    <string name="userNamePromptTitle">User\'s Name</string>
+    <string name="userNamePrompt">Enter the User\'s Name</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <string-array name="treeSpinnerEmpty">
+        <item>Empty</item>
+    </string-array>
+
+    <string-array name="branchSpinner">
+        <item>Upper Branch</item>
+        <item>Middle Branch</item>
+        <item>Lower Branch</item>
+    </string-array>
+
+    <string-array name="stateSpinner">
+        <item>State Unknown</item>
+        <item>Absent</item>
+        <item>Brocas Alive 1</item>
+        <item>Brocas Alive 2 W/F</item>
+        <item>Brocas Alive 2 WO/F</item>
+        <item>Brocas Dead Chem</item>
+        <item>Brocas Dead Fungus</item>
+    </string-array>
+
+</resources>

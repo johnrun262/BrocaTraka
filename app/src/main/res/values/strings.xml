@@ -44,7 +44,7 @@
     <string name="exceptionWritingToFile">Excepción de escritura para el archivo</string>
     <string name="exceptionReadingFromFile">Lectura de Excepción de archivo</string>
     <string name="userNamePromptTitle">El Nombre del Usuario</string>
-    <string name="userNamePrompt">Introduzca el nombre del usuario"</string>
+    <string name="userNamePrompt">Introduzca el nombre del usuario</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancelar</string>
 

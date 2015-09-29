@@ -167,17 +167,6 @@
                 android:text="@string/saveTree" />
         </TableRow>
 
-        <TableRow>
-
-            <Button
-                android:id="@+id/cancelTree"
-                style="@style/button_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/newTree"
-                android:visibility="gone"
-                android:text="@string/cancelTree" />
-        </TableRow>
     </TableLayout>
 
     <Spinner
@@ -197,13 +186,6 @@
 
         <TableRow>
 
-            <Button
-                android:id="@+id/gpsNewFile"
-                style="@style/button_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:text="@string/newFileButton" />
 
             <Button
                 android:id="@+id/gpsClear"

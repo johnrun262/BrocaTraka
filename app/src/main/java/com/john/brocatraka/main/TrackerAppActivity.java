@@ -149,12 +149,12 @@ public class TrackerAppActivity extends Activity {
         saveButton.setOnClickListener(new MyOnClickListener(ButtonType.SAVE_TREE));
 
         // Setup listener for cancel tree button clicks
-        View cancelButton = findViewById(R.id.cancelTree);
-        cancelButton.setOnClickListener(new MyOnClickListener(ButtonType.CANCEL_TREE));
+        //View cancelButton = findViewById(R.id.cancelTree);
+        //cancelButton.setOnClickListener(new MyOnClickListener(ButtonType.CANCEL_TREE));
 
         // Setup listener for email button clicks
-        View newFileButton = findViewById(R.id.gpsNewFile);
-        newFileButton.setOnClickListener(new MyOnClickListener(ButtonType.NEW_FILE));
+        //View newFileButton = findViewById(R.id.gpsNewFile);
+        //newFileButton.setOnClickListener(new MyOnClickListener(ButtonType.NEW_FILE));
 
         // Setup listener for email button clicks
         View emailButton = findViewById(R.id.gpsEmail);
